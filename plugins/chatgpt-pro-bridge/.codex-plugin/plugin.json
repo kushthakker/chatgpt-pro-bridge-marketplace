@@ -1,0 +1,24 @@
+{
+  "name": "chatgpt-pro-bridge",
+  "version": "0.1.0+codex.20260825111722",
+  "description": "Send prompts through signed-in ChatGPT Pro and archive complete responses without returning their bodies to the agent context.",
+  "author": {
+    "name": "Kush Thakker",
+    "url": "https://github.com/kushthakker"
+  },
+  "repository": "https://github.com/kushthakker/chatgpt-pro-bridge-marketplace",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "ChatGPT Pro Bridge",
+    "shortDescription": "Archive ChatGPT Pro responses outside agent context.",
+    "longDescription": "Uses a fresh isolated monitoring worker for every ChatGPT Pro bridge request from a subagent-capable main agent, so the main agent never owns the browser or output-checking loop. The worker starts a new chat, attaches images through verified clipboard paste, sends the complete-context envelope, archives separate metadata, request, and response-only files, and returns only paths, counts, hashes, and verification status.",
+    "developerName": "Kush Thakker",
+    "category": "Productivity",
+    "capabilities": [
+      "browser automation",
+      "conversation verification",
+      "local archival"
+    ],
+    "defaultPrompt": "Send this prompt through signed-in ChatGPT Pro using one fresh dedicated monitoring worker, archive the complete response in zero-body mode, and return only its path, count, hash, and verification status."
+  }
+}

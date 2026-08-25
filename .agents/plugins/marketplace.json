@@ -1,0 +1,20 @@
+{
+  "name": "kush-chatgpt-pro-bridge",
+  "interface": {
+    "displayName": "Kush ChatGPT Pro Bridge"
+  },
+  "plugins": [
+    {
+      "name": "chatgpt-pro-bridge",
+      "source": {
+        "source": "local",
+        "path": "./plugins/chatgpt-pro-bridge"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

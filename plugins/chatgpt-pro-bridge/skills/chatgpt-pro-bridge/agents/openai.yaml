@@ -1,0 +1,4 @@
+interface:
+  display_name: "ChatGPT Pro Bridge"
+  short_description: "Send a Pro chat in the signed-in browser and save its result."
+  default_prompt: "Use the signed-in in-app browser to send a ChatGPT Pro prompt, capture the complete response, verify the Pro model, and save a local record."
