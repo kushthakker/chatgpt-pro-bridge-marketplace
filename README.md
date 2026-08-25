@@ -12,4 +12,3 @@ codex plugin add chatgpt-pro-bridge@kush-chatgpt-pro-bridge
 ```
 
 The destination host must provide the Codex in-app Browser and have its own signed-in ChatGPT session. Installing the plugin does not transfer browser cookies or credentials between hosts.
-
