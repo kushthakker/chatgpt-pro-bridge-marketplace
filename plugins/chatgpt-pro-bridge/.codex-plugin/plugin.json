@@ -1,6 +1,6 @@
 {
   "name": "chatgpt-pro-bridge",
-  "version": "0.1.0+codex.20260825111722",
+  "version": "0.1.0+codex.20260825165451",
   "description": "Send prompts through signed-in ChatGPT Pro and archive complete responses without returning their bodies to the agent context.",
   "author": {
     "name": "Kush Thakker",

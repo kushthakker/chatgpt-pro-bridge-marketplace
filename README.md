@@ -7,7 +7,7 @@ The plugin starts a fresh signed-in ChatGPT Pro browser chat, sends a complete c
 ## Install
 
 ```sh
-codex plugin marketplace add kushthakker/chatgpt-pro-bridge-marketplace --ref v0.1.0-codex.20260825111722
+codex plugin marketplace add kushthakker/chatgpt-pro-bridge-marketplace --ref v0.1.0-codex.20260825165451
 codex plugin add chatgpt-pro-bridge@kush-chatgpt-pro-bridge
 ```
 
