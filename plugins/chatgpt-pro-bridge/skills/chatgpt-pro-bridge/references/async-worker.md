@@ -1,15 +1,16 @@
 # Asynchronous Worker Mode
 
-Use this mode for every new bridge request initiated by a subagent-capable main or root agent. The main agent delegates even short calls so browser monitoring and response handling never occupy its context or checking loop. Inline execution is only the fallback for a spawned agent that is prohibited from creating descendants.
+Use this mode for every new bridge request initiated by a subagent-capable main or root agent. The main agent delegates even short calls so browser/API waiting and response handling never occupy its context or checking loop. Inline execution is only the fallback for a spawned agent that is prohibited from creating descendants.
 
 ## Ownership
 
 - Spawn one fresh dedicated worker subagent for each new bridge request. Do not reuse an unrelated or previously completed worker, and do not create a user-owned Codex task for this internal work.
 - Keep that worker's identity stable for the whole request. Resume the same worker after confirmation, `GENERATION_STILL_ACTIVE`, or another explicitly resumable state; never replace it merely because the main agent moved on to other work.
 - Use this delegation only from an agent that is authorized to create a subagent. A spawned worker performs the bridge inline and must not create a descendant.
-- The worker exclusively owns the ChatGPT tab, clipboard attachment flow, completion monitoring, server-backed reread, and archive files. The main agent must not operate the same tab or run a second bridge worker concurrently.
-- Keep shared writes collision-free: the worker receives one approved archive directory and lets the permanent ChatGPT conversation ID determine the three filenames.
-- Preserve zero-body isolation. The worker returns only status, conversation URL and ID, model status, file paths, counts, hashes, and reread status—never request or response bodies.
+- In browser mode, the worker exclusively owns the ChatGPT tab, clipboard attachment flow, completion monitoring, server-backed reread, and archive files. The main agent must not operate the same tab or run a second bridge worker concurrently.
+- In API mode, the worker exclusively owns the single API process and archive. It passes the complete envelope by file, never exposes the API response body, and never retries an ambiguous dispatched request.
+- Keep shared writes collision-free: the worker receives one approved archive directory and lets the ChatGPT conversation ID or API response ID determine the filenames.
+- Preserve zero-body isolation. The worker returns only transport status, conversation or response ID, model status, file paths, counts, hashes, usage, source count, and applicable reread status—never request or response bodies.
 
 ## Delegation packet
 
@@ -18,14 +19,16 @@ Give the worker a self-contained packet containing:
 - the exact complete request envelope;
 - absolute image paths and verified MIME types, if any;
 - the archive output directory;
-- the requirement to create a new persistent ChatGPT chat with Pro visibly selected;
-- the requirement to use clipboard paste for ChatGPT image attachments;
+- the selected `browser` or `responses_api` transport;
+- for browser mode, the requirement to create a new persistent ChatGPT chat with Pro visibly selected;
+- for API mode, the exact model/effort or instruction to use the configured defaults;
+- for browser mode, the requirement to use clipboard paste for ChatGPT image attachments;
 - the zero-body extraction and summary-only return contract;
 - a prohibition on duplicate sends and on using `read_thread` in the main or worker context.
 
 Do not send hidden system or developer instructions, unrelated conversation history, browser credentials, or implicit main-agent context.
 
-## Send synchronization
+## Browser send synchronization
 
 1. The worker opens and verifies an empty new Pro chat, classifies the envelope and attachments under the Browser policy, enables completion monitoring, and calls `markHandoff()`.
 2. For sensitive text or attachments, the worker must not read a file into the browser clipboard, paste, or type yet. It returns `AWAITING_SENSITIVE_SEND_CONFIRMATION` describing the destination, the specific data and filenames, why they are needed, and the grouped imminent actions: clipboard staging, paste/type, and Send. After the user confirms, resume the same worker to perform those actions and send exactly once without another pause.
@@ -43,6 +46,13 @@ Do not send hidden system or developer instructions, unrelated conversation hist
 - The worker reports only meaningful state transitions: required confirmation, terminal success, terminal failure, `GENERATION_STILL_ACTIVE`, or `SEND_STATE_AMBIGUOUS`. It does not send per-poll updates.
 - The main agent relies on the worker's completion notification and summary instead of checking whether output has arrived. If the user explicitly asks for status, take at most one compact immediate worker snapshot; do not begin a polling loop.
 
+## API execution
+
+- The worker first runs `scripts/run_responses_api.py config`. If it reports a missing key, return `OPENAI_API_KEY_MISSING` without attempting a request.
+- After building the exact complete envelope, the worker invokes the runner once. There is no browser tab, clipboard, send confirmation, or server-backed reread in this transport.
+- A successful worker returns only the runner's verified summary. `REQUEST_STATE_AMBIGUOUS_NO_RETRY` is terminal for that request; do not resume, poll, or resend it automatically.
+- The main agent continues independent work while the worker waits. When the worker finishes, it receives the normal agent completion notification rather than polling the process or archive.
+
 ## Main-agent handoff
 
 - Dispatch the worker asynchronously, then continue the user's independent work immediately.
@@ -51,7 +61,8 @@ Do not send hidden system or developer instructions, unrelated conversation hist
 
 ## Completion and failure
 
-- Success requires one new ChatGPT conversation, one user turn, one completed assistant turn, a verified archive, and no response body in agent messages or tool output.
+- Browser success requires one new ChatGPT conversation, one user turn, one completed assistant turn, a verified archive, and no response body in agent messages or tool output.
+- API success requires one completed stateless response ID, a verified four-file archive, and no response body in agent messages or tool output.
 - If image paste produces no preview, stop after the single paste attempt and report the attachment blocker without trying the chooser.
 - If the worker cannot prove whether Send occurred, call `markHandoff()` in the current turn, report `SEND_STATE_AMBIGUOUS`, and preserve the tab for inspection. Do not retry automatically.
 - If generation fails definitively before producing an assistant turn, report the observed failure and preserve the conversation URL when available.

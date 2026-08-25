@@ -1,4 +1,4 @@
 interface:
   display_name: "ChatGPT Pro Bridge"
-  short_description: "Send a Pro chat in the signed-in browser and save its result."
-  default_prompt: "Use the signed-in in-app browser to send a ChatGPT Pro prompt, capture the complete response, verify the Pro model, and save a local record."
+  short_description: "Run Pro by browser or headless API and save its result."
+  default_prompt: "Run this as a fresh Pro request using the headless Responses API when Browser is unavailable, enable Web Search, archive the complete result outside agent context, and return only the verified zero-body summary."
